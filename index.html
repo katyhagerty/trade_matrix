@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trade Matrix Builder</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Trade Matrix Builder</h1>
+          <p class="subhead">Define scenario variables, constrain dependent values, and export the valid combinations.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button" id="toggleImportButton" type="button" title="Import variables and values">Import</button>
+          <button class="ghost-button" id="loadExampleButton" type="button" title="Load example data">Example</button>
+          <button class="ghost-button" id="resetButton" type="button" title="Clear the workspace">Reset</button>
+        </div>
+      </header>
+
+      <section class="import-panel" id="importPanel" hidden>
+        <div class="import-header">
+          <div>
+            <h2>Import Variables</h2>
+            <p class="status-text">Use headers as variable names, or import two columns named Variable and Value.</p>
+          </div>
+          <label class="file-button">
+            <span>Choose CSV</span>
+            <input id="importFile" type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values">
+          </label>
+        </div>
+        <label>
+          <span>Paste CSV or spreadsheet rows</span>
+          <textarea id="importText" rows="5" placeholder="Sensor Package,Flight Profile,Weather&#10;Baseline,Low,Clear&#10;Enhanced,Medium,Rain"></textarea>
+        </label>
+        <div class="import-actions">
+          <button class="primary-button" id="importReplaceButton" type="button">Replace Variables</button>
+          <button class="ghost-button" id="importMergeButton" type="button">Merge Into Existing</button>
+          <button class="ghost-button" id="clearImportButton" type="button">Clear</button>
+          <p class="import-feedback" id="importFeedback"></p>
+        </div>
+      </section>
+
+      <section class="summary-strip" aria-label="Matrix summary">
+        <div>
+          <span class="metric" id="variableCount">0</span>
+          <span class="metric-label">Variables</span>
+        </div>
+        <div>
+          <span class="metric" id="rawCombinationCount">0</span>
+          <span class="metric-label">Raw combinations</span>
+        </div>
+        <div>
+          <span class="metric" id="validScenarioCount">0</span>
+          <span class="metric-label">Valid scenarios</span>
+        </div>
+        <div>
+          <span class="metric" id="ruleCount">0</span>
+          <span class="metric-label">Dependencies</span>
+        </div>
+        <div>
+          <span class="metric" id="exclusionCount">0</span>
+          <span class="metric-label">Exclusions</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Variables</h2>
+          </div>
+          <div id="variablesList" class="stack"></div>
+          <div class="panel-footer">
+            <button class="primary-button" id="addVariableButton" type="button">Add</button>
+          </div>
+        </aside>
+
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Dependencies</h2>
+          </div>
+          <div id="rulesList" class="stack"></div>
+          <div class="panel-footer">
+            <button class="primary-button" id="addRuleButton" type="button">Add</button>
+          </div>
+        </aside>
+
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Exclusions</h2>
+            <button class="primary-button" id="addExclusionButton" type="button">Add</button>
+          </div>
+          <div id="exclusionsList" class="stack"></div>
+        </aside>
+
+        <section class="matrix-area">
+          <div class="matrix-toolbar">
+            <div>
+              <h2>Scenarios</h2>
+              <p id="statusText" class="status-text"></p>
+            </div>
+            <div class="matrix-actions">
+              <label class="search-box">
+                <span>Filter</span>
+                <input id="scenarioFilter" type="search" placeholder="Value or variable">
+              </label>
+              <button class="primary-button" id="exportButton" type="button">Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap" id="tableWrap">
+            <table id="matrixTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <template id="variableTemplate">
+      <article class="item-card variable-card">
+        <div class="item-grid">
+          <label>
+            <span>Name</span>
+            <input class="variable-name" type="text" placeholder="Variable name">
+          </label>
+          <button class="icon-button remove-variable" type="button" title="Remove variable" aria-label="Remove variable">×</button>
+        </div>
+        <label>
+          <span>Values</span>
+          <textarea class="variable-values" rows="3" placeholder="One value per line"></textarea>
+        </label>
+      </article>
+    </template>
+
+    <template id="ruleTemplate">
+      <article class="item-card rule-card">
+        <div class="rule-line">
+          <label>
+            <span>When</span>
+            <select class="rule-source"></select>
+          </label>
+          <label>
+            <span>Equals</span>
+            <select class="rule-source-value"></select>
+          </label>
+        </div>
+        <div class="rule-line">
+          <label>
+            <span>Constrain</span>
+            <input class="rule-target-name" type="text" placeholder="Constraint name">
+          </label>
+          <label>
+            <span>Constraint values</span>
+            <select class="rule-target-values" multiple size="4"></select>
+          </label>
+        </div>
+        <div class="custom-value-row">
+          <label>
+            <span>New constraint value</span>
+            <input class="rule-custom-value" type="text" placeholder="Value to apply when condition is true">
+          </label>
+          <button class="ghost-button add-rule-value" type="button">Add Constraint</button>
+        </div>
+        <button class="danger-button remove-rule" type="button">Remove</button>
+      </article>
+    </template>
+
+    <template id="exclusionTemplate">
+      <article class="item-card exclusion-card">
+        <div class="condition-list"></div>
+        <div class="card-actions">
+          <button class="ghost-button add-condition" type="button">Add condition</button>
+          <button class="danger-button remove-exclusion" type="button">Remove</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js?v=20260518-constraint-input"></script>
+  </body>
+</html>
