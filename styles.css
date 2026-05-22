@@ -101,11 +101,16 @@ label span {
 
 .topbar-actions,
 .matrix-actions,
-.import-actions {
+.import-actions,
+.preset-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.compact-file-button {
+  min-height: 34px;
 }
 
 .import-panel {
@@ -166,9 +171,59 @@ label span {
 
 .summary-strip {
   display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.validation-panel,
+.help-box,
+.bulk-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.validation-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+}
+
+.help-box,
+.bulk-panel {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fbfcfd;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 760;
+}
+
+.help-box p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.issue-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  list-style: none;
+}
+
+.issue-list li,
+.issue-list div {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+  background: #ffffff;
 }
 
 .summary-strip > div {
@@ -254,6 +309,10 @@ label span {
 .stack {
   display: grid;
   gap: 12px;
+  margin-top: 12px;
+}
+
+.tab-filter {
   margin-top: 12px;
 }
 
@@ -399,6 +458,11 @@ textarea:focus {
   gap: 8px;
 }
 
+.rule-conditions {
+  display: grid;
+  gap: 8px;
+}
+
 .condition-row .icon-button {
   flex: 0 0 34px;
 }
@@ -421,6 +485,36 @@ textarea:focus {
 
 .column-order-panel textarea {
   min-height: 136px;
+}
+
+.preset-actions {
+  margin-top: 8px;
+}
+
+.preset-actions input,
+.preset-actions select {
+  width: auto;
+  min-width: 170px;
+}
+
+.scenario-options,
+.duplicate-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.rule-preview {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hidden-by-filter {
+  display: none;
 }
 
 .matrix-area {
@@ -483,6 +577,10 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background: #fff8df;
+}
+
+tbody tr.duplicate-row {
+  background: #ffece5;
 }
 
 .empty-state {

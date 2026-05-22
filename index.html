@@ -14,7 +14,14 @@
           <p class="subhead">Define scenario variables, constrain dependent values, and export the valid combinations.</p>
         </div>
         <div class="topbar-actions">
+          <button class="ghost-button" id="undoButton" type="button" title="Undo last change">Undo</button>
+          <button class="ghost-button" id="redoButton" type="button" title="Redo last undone change">Redo</button>
           <button class="ghost-button" id="toggleImportButton" type="button" title="Import variables and values">Import</button>
+          <button class="ghost-button" id="saveProjectButton" type="button" title="Save project file">Save Project</button>
+          <label class="file-button compact-file-button">
+            <span>Load Project</span>
+            <input id="loadProjectFile" type="file" accept=".json,application/json">
+          </label>
           <button class="ghost-button" id="loadExampleButton" type="button" title="Load example data">Example</button>
           <button class="ghost-button" id="resetButton" type="button" title="Clear the workspace">Reset</button>
         </div>
@@ -64,6 +71,20 @@
           <span class="metric" id="exclusionCount">0</span>
           <span class="metric-label">Exclusions</span>
         </div>
+        <div>
+          <span class="metric" id="validationCount">0</span>
+          <span class="metric-label">Issues</span>
+        </div>
+      </section>
+
+      <section class="validation-panel" id="validationPanel">
+        <div class="panel-header">
+          <h2>Validation</h2>
+          <button class="ghost-button" id="toggleValidationButton" type="button" aria-expanded="false">Show</button>
+        </div>
+        <div id="validationBody" hidden>
+          <ul id="validationList" class="issue-list"></ul>
+        </div>
       </section>
 
       <nav class="tabs" aria-label="Trade matrix sections">
@@ -79,6 +100,25 @@
             <div class="panel-header">
               <h2>Variables</h2>
             </div>
+            <label class="tab-filter">
+              <span>Search variables</span>
+              <input id="variableSearch" type="search" placeholder="Variable name or value">
+            </label>
+            <details class="help-box">
+              <summary>Examples</summary>
+              <p>Use one value per line. Comma-separated values also work for quick lists.</p>
+            </details>
+            <details class="bulk-panel">
+              <summary>Bulk Edit</summary>
+              <label>
+                <span>Variable, Value rows</span>
+                <textarea id="bulkVariablesText" rows="8" placeholder="Variable,Value&#10;Sensor Package,Baseline&#10;Sensor Package,Enhanced"></textarea>
+              </label>
+              <div class="card-actions">
+                <button class="ghost-button" id="loadBulkVariablesButton" type="button">Load Current</button>
+                <button class="primary-button" id="applyBulkVariablesButton" type="button">Apply</button>
+              </div>
+            </details>
             <div id="variablesList" class="stack"></div>
             <div class="panel-footer">
               <button class="primary-button" id="addVariableButton" type="button">Add</button>
@@ -91,6 +131,14 @@
             <div class="panel-header">
               <h2>Dependencies</h2>
             </div>
+            <label class="tab-filter">
+              <span>Search dependencies</span>
+              <input id="dependencySearch" type="search" placeholder="Condition or constraint">
+            </label>
+            <details class="help-box">
+              <summary>Examples</summary>
+              <p>Add extra conditions for AND logic. Change the match mode to Any for OR logic.</p>
+            </details>
             <div id="rulesList" class="stack"></div>
             <div class="panel-footer">
               <button class="primary-button" id="addRuleButton" type="button">Add</button>
@@ -104,6 +152,16 @@
               <h2>Exclusions</h2>
               <button class="primary-button" id="addExclusionButton" type="button">Add</button>
             </div>
+            <label class="tab-filter">
+              <span>Search exclusions</span>
+              <input id="exclusionSearch" type="search" placeholder="Variable or value">
+            </label>
+            <details class="help-box">
+              <summary>Import exclusions</summary>
+              <p>Paste rows as Variable,Value,Variable,Value to remove rows matching all pairs.</p>
+              <textarea id="exclusionImportText" rows="5" placeholder="Sensor Package,Passive,Weather,Dust"></textarea>
+              <button class="ghost-button" id="importExclusionsButton" type="button">Import Exclusions</button>
+            </details>
             <div id="exclusionsList" class="stack"></div>
           </div>
         </section>
@@ -120,8 +178,16 @@
                   <span>Filter</span>
                   <input id="scenarioFilter" type="search" placeholder="Value or variable">
                 </label>
+                <button class="ghost-button" id="exportJsonButton" type="button">Export JSON</button>
+                <button class="ghost-button" id="exportExcelButton" type="button">Export Excel</button>
                 <button class="primary-button" id="exportButton" type="button">Export CSV</button>
               </div>
+            </div>
+            <div class="scenario-options">
+              <label>
+                <span>Scenario ID pattern</span>
+                <input id="scenarioPattern" type="text" placeholder="Scenario {Scenario}: {Sensor Package}-{Weather}">
+              </label>
             </div>
             <div class="column-order-panel">
               <div class="panel-header">
@@ -131,7 +197,19 @@
               <label id="columnOrderBody" hidden>
                 <span>One column per line</span>
                 <textarea id="columnOrderText" rows="6" placeholder="Add variables to populate column order"></textarea>
+                <div class="preset-actions">
+                  <input id="columnPresetName" type="text" placeholder="Preset name">
+                  <button class="ghost-button" id="saveColumnPresetButton" type="button">Save Preset</button>
+                  <select id="columnPresetSelect"></select>
+                  <button class="ghost-button" id="loadColumnPresetButton" type="button">Load</button>
+                </div>
               </label>
+            </div>
+            <div class="duplicate-panel">
+              <div class="panel-header">
+                <h2>Duplicate Scenarios</h2>
+              </div>
+              <div id="duplicateList" class="issue-list"></div>
             </div>
             <div class="table-wrap" id="tableWrap">
               <table id="matrixTable">
@@ -162,6 +240,16 @@
 
     <template id="ruleTemplate">
       <article class="item-card rule-card">
+        <div class="item-grid">
+          <label>
+            <span>Match mode</span>
+            <select class="rule-mode">
+              <option value="all">All conditions</option>
+              <option value="any">Any condition</option>
+            </select>
+          </label>
+        </div>
+        <div class="rule-conditions"></div>
         <div class="rule-line">
           <label>
             <span>When</span>
@@ -172,6 +260,7 @@
             <select class="rule-source-value"></select>
           </label>
         </div>
+        <button class="ghost-button add-rule-condition" type="button">Add Condition</button>
         <div class="rule-line">
           <label>
             <span>Constrain</span>
@@ -189,6 +278,7 @@
           </label>
           <button class="ghost-button add-rule-value" type="button">Add Constraint</button>
         </div>
+        <p class="rule-preview"></p>
         <button class="danger-button remove-rule" type="button">Remove</button>
       </article>
     </template>

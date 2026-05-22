@@ -8,12 +8,20 @@ Open `index.html` in a browser. No install step is required.
 
 - Add scenario variables with one value per line or comma-separated values.
 - Import variables from pasted CSV/TSV text or a local `.csv`, `.tsv`, or `.txt` file.
+- Save and load complete project files as JSON.
+- Undo and redo workspace edits.
 - Add dependency rules in the form: when variable A equals value X, apply one or more typed constraint values.
+- Add AND/OR dependency conditions and preview their scenario impact.
 - Add a new constraint name and value directly from a dependency rule.
 - Add exclusion rules that remove rows where all selected variable/value conditions match.
+- Import exclusions from pasted variable/value pairs.
 - Generate all valid scenario combinations.
-- Filter the generated table.
-- Export the matrix as `trade_matrix.csv`.
+- Validate the workspace for incomplete rules, duplicate names, unknown columns, and oversized matrices.
+- Filter each tab and the generated table.
+- Configure scenario ID naming patterns.
+- Set and save column order presets.
+- Review duplicate scenario patterns.
+- Export the matrix as CSV, JSON, or Excel-compatible `.xls`.
 - Persist the current workspace in browser local storage.
 
 ## Notes
