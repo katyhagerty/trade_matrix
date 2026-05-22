@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trade Matrix Builder</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260520-hidden-fix">
   </head>
   <body>
     <main class="app-shell">
@@ -66,55 +66,80 @@
         </div>
       </section>
 
+      <nav class="tabs" aria-label="Trade matrix sections">
+        <button class="tab-button active" type="button" data-tab="variablesTab" aria-selected="true">Variables</button>
+        <button class="tab-button" type="button" data-tab="dependenciesTab" aria-selected="false">Dependencies</button>
+        <button class="tab-button" type="button" data-tab="exclusionsTab" aria-selected="false">Exclusions</button>
+        <button class="tab-button" type="button" data-tab="scenariosTab" aria-selected="false">Scenarios</button>
+      </nav>
+
       <section class="workspace">
-        <aside class="panel">
-          <div class="panel-header">
-            <h2>Variables</h2>
-          </div>
-          <div id="variablesList" class="stack"></div>
-          <div class="panel-footer">
-            <button class="primary-button" id="addVariableButton" type="button">Add</button>
-          </div>
-        </aside>
-
-        <aside class="panel">
-          <div class="panel-header">
-            <h2>Dependencies</h2>
-          </div>
-          <div id="rulesList" class="stack"></div>
-          <div class="panel-footer">
-            <button class="primary-button" id="addRuleButton" type="button">Add</button>
-          </div>
-        </aside>
-
-        <aside class="panel">
-          <div class="panel-header">
-            <h2>Exclusions</h2>
-            <button class="primary-button" id="addExclusionButton" type="button">Add</button>
-          </div>
-          <div id="exclusionsList" class="stack"></div>
-        </aside>
-
-        <section class="matrix-area">
-          <div class="matrix-toolbar">
-            <div>
-              <h2>Scenarios</h2>
-              <p id="statusText" class="status-text"></p>
+        <section class="tab-panel active" id="variablesTab">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Variables</h2>
             </div>
-            <div class="matrix-actions">
-              <label class="search-box">
-                <span>Filter</span>
-                <input id="scenarioFilter" type="search" placeholder="Value or variable">
+            <div id="variablesList" class="stack"></div>
+            <div class="panel-footer">
+              <button class="primary-button" id="addVariableButton" type="button">Add</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="dependenciesTab" hidden>
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Dependencies</h2>
+            </div>
+            <div id="rulesList" class="stack"></div>
+            <div class="panel-footer">
+              <button class="primary-button" id="addRuleButton" type="button">Add</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="exclusionsTab" hidden>
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Exclusions</h2>
+              <button class="primary-button" id="addExclusionButton" type="button">Add</button>
+            </div>
+            <div id="exclusionsList" class="stack"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="scenariosTab" hidden>
+          <section class="matrix-area">
+            <div class="matrix-toolbar">
+              <div>
+                <h2>Scenarios</h2>
+                <p id="statusText" class="status-text"></p>
+              </div>
+              <div class="matrix-actions">
+                <label class="search-box">
+                  <span>Filter</span>
+                  <input id="scenarioFilter" type="search" placeholder="Value or variable">
+                </label>
+                <button class="primary-button" id="exportButton" type="button">Export CSV</button>
+              </div>
+            </div>
+            <div class="column-order-panel">
+              <div class="panel-header">
+                <h2>Column Order</h2>
+                <button class="ghost-button" id="toggleColumnOrderButton" type="button" aria-expanded="false">Show</button>
+              </div>
+              <label id="columnOrderBody" hidden>
+                <span>One column per line</span>
+                <textarea id="columnOrderText" rows="6" placeholder="Add variables to populate column order"></textarea>
               </label>
-              <button class="primary-button" id="exportButton" type="button">Export CSV</button>
             </div>
-          </div>
-          <div class="table-wrap" id="tableWrap">
-            <table id="matrixTable">
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+            <div class="table-wrap" id="tableWrap">
+              <table id="matrixTable">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
         </section>
       </section>
     </main>
@@ -178,6 +203,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=20260518-constraint-input"></script>
+    <script src="app.js?v=20260520-column-order-collapse-fix"></script>
   </body>
 </html>

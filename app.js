@@ -46,6 +46,8 @@ const elements = {
   importReplaceButton: document.querySelector("#importReplaceButton"),
   importMergeButton: document.querySelector("#importMergeButton"),
   clearImportButton: document.querySelector("#clearImportButton"),
+  tabButtons: document.querySelectorAll(".tab-button"),
+  tabPanels: document.querySelectorAll(".tab-panel"),
   addVariableButton: document.querySelector("#addVariableButton"),
   addRuleButton: document.querySelector("#addRuleButton"),
   addExclusionButton: document.querySelector("#addExclusionButton"),
@@ -53,6 +55,9 @@ const elements = {
   resetButton: document.querySelector("#resetButton"),
   exportButton: document.querySelector("#exportButton"),
   scenarioFilter: document.querySelector("#scenarioFilter"),
+  columnOrderText: document.querySelector("#columnOrderText"),
+  columnOrderBody: document.querySelector("#columnOrderBody"),
+  toggleColumnOrderButton: document.querySelector("#toggleColumnOrderButton"),
   matrixTable: document.querySelector("#matrixTable"),
   statusText: document.querySelector("#statusText"),
   variableCount: document.querySelector("#variableCount"),
@@ -82,6 +87,10 @@ elements.clearImportButton.addEventListener("click", () => {
   elements.importText.value = "";
   elements.importFile.value = "";
   setImportFeedback("");
+});
+
+elements.tabButtons.forEach((button) => {
+  button.addEventListener("click", () => showTab(button.dataset.tab));
 });
 
 elements.addVariableButton.addEventListener("click", () => {
@@ -150,6 +159,35 @@ elements.exportButton.addEventListener("click", () => {
 });
 
 elements.scenarioFilter.addEventListener("input", renderMatrix);
+elements.toggleColumnOrderButton.addEventListener("click", () => {
+  const isExpanded = elements.toggleColumnOrderButton.getAttribute("aria-expanded") === "true";
+  setColumnOrderExpanded(!isExpanded);
+});
+elements.columnOrderText.addEventListener("input", () => {
+  updateColumnOrderFromText(elements.columnOrderText.value);
+  renderMatrix();
+  saveState();
+});
+
+function setColumnOrderExpanded(isExpanded) {
+  elements.columnOrderBody.hidden = !isExpanded;
+  elements.toggleColumnOrderButton.setAttribute("aria-expanded", String(isExpanded));
+  elements.toggleColumnOrderButton.textContent = isExpanded ? "Hide" : "Show";
+}
+
+function showTab(tabId) {
+  elements.tabButtons.forEach((button) => {
+    const isActive = button.dataset.tab === tabId;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  elements.tabPanels.forEach((panel) => {
+    const isActive = panel.id === tabId;
+    panel.hidden = !isActive;
+    panel.classList.toggle("active", isActive);
+  });
+}
 
 function render() {
   migrateState();
@@ -159,6 +197,7 @@ function render() {
   renderRules();
   renderExclusions();
   renderSummary();
+  renderColumnOrder();
   renderMatrix();
   saveState();
 }
@@ -587,13 +626,41 @@ function renderSummary() {
   elements.exclusionCount.textContent = state.exclusions.filter(isExclusionComplete).length.toLocaleString();
 }
 
+function renderColumnOrder() {
+  const variables = getOrderedVariables();
+
+  if (document.activeElement === elements.columnOrderText) {
+    return;
+  }
+
+  elements.columnOrderText.value = variables.map((variable) => variable.name.trim()).join("\n");
+}
+
+function updateColumnOrderFromText(text) {
+  const variablesByName = new Map(getCompleteVariables().map((variable) => [variable.name.trim().toLowerCase(), variable]));
+  const orderedIds = [];
+
+  text
+    .split(/\r?\n|,/)
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .forEach((name) => {
+      const variable = variablesByName.get(name.toLowerCase());
+      if (variable && !orderedIds.includes(variable.id)) {
+        orderedIds.push(variable.id);
+      }
+    });
+
+  state.columnOrder = orderedIds;
+}
+
 function renderMatrix() {
   const scenarios = getValidScenarios();
   const filterText = elements.scenarioFilter.value.trim().toLowerCase();
   const filteredScenarios = filterText
     ? scenarios.filter((scenario) => Object.entries(scenario).some(([key, value]) => `${key} ${value}`.toLowerCase().includes(filterText)))
     : scenarios;
-  const variables = getCompleteVariables();
+  const variables = getOrderedVariables();
   const thead = elements.matrixTable.querySelector("thead");
   const tbody = elements.matrixTable.querySelector("tbody");
 
@@ -644,6 +711,7 @@ function refreshDerivedViews() {
   renderRules();
   renderExclusions();
   renderSummary();
+  renderColumnOrder();
   renderMatrix();
   saveState();
 }
@@ -691,6 +759,12 @@ function getValidScenarios() {
   const variables = getCompleteVariables();
   const combinations = buildCombinations(variables);
   return combinations.filter(satisfiesRules).filter((scenario) => !isExcludedScenario(scenario));
+}
+
+function getOrderedVariables() {
+  normalizeColumnOrder();
+  const variablesById = new Map(getCompleteVariables().map((variable) => [variable.id, variable]));
+  return state.columnOrder.map((id) => variablesById.get(id)).filter(Boolean);
 }
 
 function buildCombinations(variables) {
@@ -803,6 +877,21 @@ function getCompleteVariables() {
   });
 }
 
+function normalizeColumnOrder() {
+  state.columnOrder ||= [];
+  const completeVariables = getCompleteVariables();
+  const completeIds = new Set(completeVariables.map((variable) => variable.id));
+  const orderedIds = state.columnOrder.filter((id) => completeIds.has(id));
+
+  completeVariables.forEach((variable) => {
+    if (!orderedIds.includes(variable.id)) {
+      orderedIds.push(variable.id);
+    }
+  });
+
+  state.columnOrder = orderedIds;
+}
+
 function firstVariableWithValues() {
   return state.variables.find((variable) => parseValues(variable).length > 0);
 }
@@ -849,6 +938,7 @@ function migrateState() {
   state.variables ||= [];
   state.rules ||= [];
   state.exclusions ||= [];
+  state.columnOrder ||= [];
   state.rules.forEach((rule) => {
     rule.targetName ||= findVariable(rule.targetId)?.name.trim() || "";
     rule.allowedValues ||= [];
@@ -859,7 +949,7 @@ function migrateState() {
 }
 
 function downloadCsv(scenarios) {
-  const variables = getCompleteVariables();
+  const variables = getOrderedVariables();
   const headers = ["Scenario", ...variables.map((variable) => variable.name.trim())];
   const rows = scenarios.map((scenario, index) => [
     index + 1,

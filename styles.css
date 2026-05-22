@@ -17,6 +17,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -187,14 +191,51 @@ label span {
   font-size: 0.8rem;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab-button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 760;
+}
+
+.tab-button:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.tab-button.active {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+  background: #ffffff;
+}
+
 .workspace {
-  align-items: stretch;
-  gap: 16px;
+  display: block;
+}
+
+.tab-panel {
+  min-width: 0;
+}
+
+.tab-panel[hidden] {
+  display: none;
 }
 
 .panel {
-  width: 260px;
-  min-width: 240px;
+  width: 100%;
+  min-width: 0;
   align-self: flex-start;
   border: 1px solid var(--line);
   background: var(--panel);
@@ -368,6 +409,20 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.column-order-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.column-order-panel textarea {
+  min-height: 136px;
+}
+
 .matrix-area {
   min-width: 0;
   flex: 1;
@@ -446,10 +501,6 @@ tbody tr:hover {
 }
 
 @media (max-width: 1180px) {
-  .workspace {
-    display: grid;
-  }
-
   .panel {
     width: 100%;
   }
